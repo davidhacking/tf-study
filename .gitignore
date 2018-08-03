@@ -1,0 +1,4 @@
+log
+*.pyc
+MNIST_data
+.idea
