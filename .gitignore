@@ -1,4 +1,5 @@
-log
-*.pyc
-MNIST_data
+out_model
+__pycache__
 .idea
+ae_imgs
+vae_imgs
