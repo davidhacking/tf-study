@@ -3,3 +3,4 @@ __pycache__
 .idea
 ae_imgs
 vae_imgs
+.DS_Store
