@@ -1,13 +1,5 @@
 - [link](https://github.com/dragen1860/Deep-Learning-with-TensorFlow-book)
 ### 问题
-- 为什么要batch计算？这个其实需要调试，一般从128开始选
-- 为什么需要多个hidden layer？
-    - 在神经网络中，当且仅当数据非线性分离时才需要隐藏层！
-- 激活函数，y=f(x)，找到一个f能够将x映射成y
-- 损失函数，表示训练数据和模型的gap大小
-- 损失函数越小越好？越小越拟合，但也可能出现过拟合
-- gradient clipping 改变梯度下降的模，从而更好的寻参
-- 为什么用sigmoid函数进行压缩呢？
 - 信息论中的信息熵公式 sum(-Pi*log(Pi)) 最小为0表示掌握了所有的信息，熵越大表示越不确定
 - 传播算法 
     - [公式推导](https://www.youtube.com/watch?v=rq-UMTcI6Tk&list=PLh7DRwYmUgh7swOvZUZ52LMeGDmjFH0nv&index=68)
@@ -27,7 +19,6 @@
 - 为什么mnist通过几次线性拟合就能完成预测？
     - 实际上是一种特征提取和降维，将28*28 784维的数据降维成256，再降维成128再降维成10
     - 那为什么不用更加一般化的泰勒展开多项式呢？
-- 为什么叫dense？应为全连接所以密集
 - 拟合优化，减少过拟合(over fitting)
     - regularization，添加项的方式优化损失函数
     - momentum，通过考虑之前的梯度更新的优化learning_rate，达到减少尖锐的更新梯度方向和跨越一些不是最优的极值点的目的
@@ -38,13 +29,45 @@
     - 可以抽象像素概念到搞成特征概念，例如识别车子，就需要识别四个轮子
 - feature scaling，特征缩放，以0为均值，1为方差，(x-均值)/方差 BatchNormalization
 - ResNet，通过shortcut使得网络能够兼顾多层的参数量训练和退化到之前的版本的能力
-- fc层，full connection全连接层
 - 通过机器学习解决问题的[方案](https://www.youtube.com/watch?v=9rGDGuZ_erQ&list=PLh7DRwYmUgh7swOvZUZ52LMeGDmjFH0nv&index=116)
 - 无监督学习的目标是重建自己
 - 人是如何思考和学习的？能否把思考和学习的能力通过计算机实现？
 - rnn/lstm/gru的区别是啥？rnn是解决序列化训练问题，但是优化容易出现梯度爆炸和梯度离散所以使用lstm，gru在lstm的基础上增加了几个门
 - 如何理解数学公式，https://www.youtube.com/watch?v=ZRJR19E6it0&list=PLh7DRwYmUgh7swOvZUZ52LMeGDmjFH0nv&index=133
 
+
+## 可视化
+```python
+def plot_multiclass_decision_boundary(model, X, y, savefig_fp=None):
+    """Plot the multiclass decision boundary for a model that accepts 2D inputs.
+    Arguments:
+    model (function} trained model with function model.predict (x in).
+    X {numpy.ndarray} 2D inputs with shape (N, 2).
+    y (numpy.ndarray} 1D outputs with shape (N,).
+    """
+    # Axis boundaries
+    x_min, x_max = X[:, 0].min() - 0.1, X[:, 0].max() + 0.1
+    y_min, y_max = X[:, 1].min() - 0.1, X[:, 1].max() + 0.1
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 101),
+                        np.linspace(y_min, y_max, 101))
+    # Create predictions
+    x_in = np.c_[xx.ravel(), yy.ravel()]
+    y_pred = model.predict(x_in)
+    if len(y_pred[0]) > 1:
+        y_pred = np.argmax(y_pred, axis=1).reshape(xx.shape)
+    else:
+        y_pred = np.round(y_pred).reshape(xx.shape)
+    # Plot decision boundary
+    plt.contourf(xx, yy, y_pred, cmap=plt.cm.RdYlBu, alpha=0.7)
+    plt.scatter(X[:, 0], X[:, 1], c=y, s=40, cmap=plt.cm.RdYlBu)
+    plt.xlim(xx.min(), xx.max ())
+    plt.ylim(yy.min(), yy.max ())
+    # Plot
+    if savefig_fp:
+        plt.savefig(savefig_fp,format='png')
+```
+
+## 知识点
 - 协同过滤
     - 基于物品的协同过滤（物以类聚）
     sim(u, s) = sum(sim(si, s) * score(u, si) for si in S)
@@ -52,18 +75,29 @@
     - 基于用户的协同过滤（人以群分）
     sim(u, s) = sum(sim(u, ui) * score(ui, s) for ui in U)
     sim(u, ui) 和sim(si, s)计算类似
-- 召回率RECALL=TP/(TP+FN)、精确率PRECISION=TP/(TP+FP)、准确率ACCURACY=(TP+TN)/(TP+FN+FP+TN)
+- 召回率 RECALL=TP/(TP+FN)、精确率 PRECISION=TP/(TP+FP)、准确率ACCURACY=(TP+TN)/(TP+FN+FP+TN)
+- F1Score=2 * RECALL*PRECISION / (RECALL+PRECISION)
+- 精确率越高，预测假阳的可能性越低
+- 召回率越高，预测假阴的可能性越低
 - 对于100个样本，其中60个正样本，40个负样本
-    - 如果系统A预测50个样本为正，但只有40个是预测正确的，TP=40,FP=10,TN=30,FN=20
-        - RECALL=67%, PRECISION=80%, ACCURACY=70%
-    - 如果系统B预测100个样本为正，TP=60,FP=40,TN=0,FN=0
-        - RECALL=100%, PRECISION=60%, ACCURACY=60%
-    - 如果系统B预测100个样本为负，TP=0,FP=0,TN=40,FN=60
+    - 如果系统A预测50个样本为阳性(P)，但只有40个是预测正确的(TP)，TP=40,FP=10,TN=30,FN=20
+        - RECALL=67%, PRECISION=80%, ACCURACY=70%, F1Score= 0.73
+    - 如果系统B预测100个样本为阳性，TP=60,FP=40,TN=0,FN=0
+        - RECALL=100%, PRECISION=60%, ACCURACY=60%, F1Score= 0.75
+    - 如果系统B预测100个样本为阴性，TP=0,FP=0,TN=40,FN=60
         - RECALL=0%, PRECISION=0%, ACCURACY=40%
-    
-    
-    
-    
+- [混淆矩阵](https://youtu.be/ZUKz4125WNI?t=12560)
+    - 之所以叫混淆矩阵，是因为当预测多分类时，某两个分类会容易预测错   
+    - 当容易混淆的时候可能需要加入更多的样本进行训练，让模型能够区分
+
+## nndl
+- page39期望公式推导
+
+## transformer
+- 输入编码器 输入 * x word_len
+  - 1.词emb编码器 输出 * x word_len x emb_dim
+  - 2.位置编码器 输出 * x word_len x emb_dim
+    - 位置信息编码 在emb_dim中，不同位置的词在2在1的基础上会加上一个pos x (sin or cos)
     
     
     
